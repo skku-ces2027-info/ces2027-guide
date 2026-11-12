@@ -137,7 +137,7 @@ EN = {
     '2층': 'Level 2',
     '1층': 'Level 1',
     '국가관 · 스마트홈 · 라이프스타일': 'Country pavilions · Smart home · Lifestyle',
-    '디지털 헬스 · 스포츠·피트니스 · 푸드테크': 'Digital health · Sports & fitness · Food tech',
+    '디지털 헬스 · 스포츠·피트니스 · 푸드테크': 'Digital health · Sports and fitness · Food tech',
     '혁신상 전시(Innovation Awards Showcase) · 50043번 부스': 'Innovation Awards Showcase · Booth 50043',
     'Eureka Park — 스타트업 전시관': 'Eureka Park: startups',
     '출처 · CES 2026 공식 LVCC · Venetian Campus 지도(2025-11-10) · 2027 배치는 12월 앱에서 다시 확인': 'Source: official CES 2026 LVCC and Venetian campus maps (2025-11-10) · Check the CES app in December for 2027',

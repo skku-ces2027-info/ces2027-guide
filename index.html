@@ -1,54 +1,81 @@
 <!doctype html>
-<html lang="ko">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>CES 2027 연수단 안내</title>
-<meta name="description" content="CES 2027(1/6~8) 세션·키노트·입장 규칙·기한을 필터로 찾고 원문으로 가는 연수단 안내판">
+<meta name="color-scheme" content="light">
+<meta name="theme-color" content="#FBF9F4">
+<title>CES 2027 Delegation Guide | 2027 미래기술 탐방연수</title>
+<meta name="description" content="Sessions, keynotes and entry rules for the 2027 미래기술 탐방연수 delegation at CES 2027 (Jan 6–8, Las Vegas). Filter by day, track and building, and see each venue on the map.">
+<meta property="og:type" content="website">
+<meta property="og:title" content="CES 2027 Delegation Guide">
+<meta property="og:description" content="2027 미래기술 탐방연수. Sessions, keynotes and entry rules by day, track and building, with every venue on the map.">
+<meta property="og:image" content="https://skku-ces2027-info.github.io/ces2027-guide/og.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%231E2A38'/%3E%3Ccircle cx='16' cy='13.5' r='6' fill='none' stroke='%23FBF9F4' stroke-width='3.2'/%3E%3Cpath d='M16 27l-5.2-7.4h10.4z' fill='%23FBF9F4'/%3E%3C/svg%3E">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
-<link rel="stylesheet" href="style.css?v=20261104h">
+<link rel="stylesheet" href="style.css?v=20261113a">
 </head>
 <body>
-<div class="mobile" role="note">데스크탑에서 열어 주세요. 휴대폰 화면은 준비 중입니다.</div>
-<div class="wrap">
-  <header class="top">
-    <span class="brand">CES 2027 연수단 안내</span>
-    <div class="right">
-      <span id="stamp"></span>
-      <button class="log-btn" id="logBtn" aria-expanded="false" aria-controls="logSheet">업데이트</button>
-      <div class="sheet" id="logSheet" role="dialog" aria-label="업데이트 기록"></div>
-    </div>
+<div class="top">
+  <header class="nav">
+    <span class="brand" lang="ko">2027 미래기술 탐방연수</span>
+    <span class="nav-r"><span id="stamp"></span><button type="button" class="log-btn" id="logBtn">Updates</button></span>
   </header>
-
-  <h1>CES 2027 · 1월 6일(수)~8일(금)</h1>
-  <ul class="dues" id="dues"></ul>
-  <p class="note">CES 공식 페이지와 보도를 모아 정리한 공개 정보입니다.</p>
-
-  <div class="main">
-    <aside class="side" aria-label="필터">
-      <label class="search"><span class="sr">검색</span><input id="q" type="search" placeholder="검색 (제목·요약·방 번호)" autocomplete="off"></label>
-      <div id="filters"></div>
-      <div class="side-foot">
-        <button class="link" id="reset">필터 지우기</button>
-        <button class="link" id="copy">이 조건 링크 복사</button>
-      </div>
-    </aside>
-    <section class="list" aria-live="polite">
-      <div class="list-head"><span id="count"></span></div>
-      <div id="groups"></div>
-    </section>
+  <div class="map">
+    <div class="map-in" id="mapIn">
+      <img src="maps/strip.svg" width="2120" height="1500" alt="Painted map of the CES venues in Las Vegas" fetchpriority="high">
+      <div id="pins"></div>
+    </div>
   </div>
-
-  <p class="foot">시각·방은 CES 사정으로 1월까지 바뀔 수 있습니다. 출국 직전 CES 앱에서 다시 확인하세요. 항목마다 원문 링크와 확인한 날짜를 적었습니다. 지도 데이터 © OpenStreetMap 기여자.</p>
+  <section class="title">
+    <div id="titleIn">
+      <h1>CES 2027<br>Delegation Guide</h1>
+      <p class="lead">Sessions, keynotes and entry rules for our delegation in Las Vegas, <span id="total">over 200</span> items in all. Pick a day, filter by track, or choose a building on the map to see what runs there.</p>
+      <ul class="dues" id="dues"></ul>
+    </div>
+  </section>
+  <div class="venues" id="venues"></div>
 </div>
-<dialog id="mapDlg" aria-labelledby="mapTitle">
-  <div class="dlg-head">
-    <div><strong id="mapTitle"></strong><span id="mapPlace"></span></div>
-    <button type="button" class="link" id="mapClose">닫기</button>
+
+<div class="bar" id="bar">
+  <div class="w bar-1">
+    <div class="tabs" id="tabs" role="group" aria-label="Day"></div>
+    <label class="search"><span class="sr">Search</span><input id="q" type="search" placeholder="Search title, summary or room" autocomplete="off"></label>
+    <button type="button" class="fbtn" id="fbtn" aria-expanded="false" aria-controls="panel">Filters<span id="fcount"></span></button>
   </div>
-  <div class="chips" id="mapTabs"></div>
-  <div class="stage"><img id="mapImg" alt="라스베이거스 전시장 지도"><i class="pin" id="mapPin"></i></div>
+  <div class="w bar-2">
+    <div class="tracks" id="tracks" role="group" aria-label="Track"></div>
+    <span class="count" id="count" aria-live="polite"></span>
+  </div>
+  <div class="panel" id="panel" role="dialog" aria-label="Filters">
+    <div class="w">
+      <div class="panel-grid" id="filters"></div>
+      <div class="panel-foot">
+        <button type="button" class="text-btn" id="reset">Clear all filters</button>
+        <button type="button" class="text-btn" id="copy">Copy link to this view</button>
+        <button type="button" class="done-btn" id="done">Show results</button>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="scrim" id="scrim"></div>
+
+<main class="w" id="list"></main>
+
+<footer class="w foot">
+  <p>Times and rooms can change until January. Check the CES app again before you leave. Every item links to its source and shows the date it was checked.</p>
+  <p>Compiled by the mentor team from official CES pages and press coverage. This is not an official CES page. Map data © OpenStreetMap contributors.</p>
+</footer>
+
+<dialog id="planDlg" aria-labelledby="planTitle">
+  <div class="dlg-head"><div><strong id="planTitle"></strong><span id="planPlace"></span></div><button type="button" class="text-btn" data-close>Close</button></div>
+  <div class="stage"><img id="planImg" alt="Hall plan"><i class="dot" id="planPin"></i></div>
 </dialog>
-<script src="app.js?v=20261104h"></script>
+<dialog id="logDlg" aria-labelledby="logTitle">
+  <div class="dlg-head"><strong id="logTitle">Updates</strong><button type="button" class="text-btn" data-close>Close</button></div>
+  <div class="log" id="log" lang="ko"></div>
+</dialog>
+<script src="app.js?v=20261113a"></script>
 </body>
 </html>

@@ -14,7 +14,7 @@
 <meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%231E2A38'/%3E%3Ccircle cx='16' cy='13.5' r='6' fill='none' stroke='%23FBF9F4' stroke-width='3.2'/%3E%3Cpath d='M16 27l-5.2-7.4h10.4z' fill='%23FBF9F4'/%3E%3C/svg%3E">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
-<link rel="stylesheet" href="style.css?v=20261113a">
+<link rel="stylesheet" href="style.css?v=20261113b">
 </head>
 <body>
 <div class="top">
@@ -24,10 +24,11 @@
   </header>
   <div class="map">
     <div class="map-in" id="mapIn">
-      <img src="maps/strip.svg" width="2120" height="1500" alt="Painted map of the CES venues in Las Vegas" fetchpriority="high">
+      <img src="maps/strip.svg" width="2120" height="1940" alt="Painted map of the CES venues in Las Vegas" fetchpriority="high">
       <div id="pins"></div>
     </div>
   </div>
+  <div class="veil"></div>
   <section class="title">
     <div id="titleIn">
       <h1>CES 2027<br>Delegation Guide</h1>
@@ -36,8 +37,10 @@
     </div>
   </section>
   <div class="venues" id="venues"></div>
+  <button type="button" class="cue" id="cue">Browse the schedule</button>
 </div>
 
+<div class="below" id="below">
 <div class="bar" id="bar">
   <div class="w bar-1">
     <div class="tabs" id="tabs" role="group" aria-label="Day"></div>
@@ -67,15 +70,17 @@
   <p>Times and rooms can change until January. Check the CES app again before you leave. Every item links to its source and shows the date it was checked.</p>
   <p>Compiled by the mentor team from official CES pages and press coverage. This is not an official CES page. Map data © OpenStreetMap contributors.</p>
 </footer>
+</div>
 
-<dialog id="planDlg" aria-labelledby="planTitle">
-  <div class="dlg-head"><div><strong id="planTitle"></strong><span id="planPlace"></span></div><button type="button" class="text-btn" data-close>Close</button></div>
-  <div class="stage"><img id="planImg" alt="Hall plan"><i class="dot" id="planPin"></i></div>
+<dialog id="mapDlg" aria-labelledby="mapTitle">
+  <div class="dlg-head"><div><strong id="mapTitle"></strong><span id="mapPlace"></span></div><button type="button" class="text-btn" data-close>Close</button></div>
+  <div class="chips" id="mapTabs"></div>
+  <div class="stage" id="mapStage"><img id="mapImg" alt=""><div id="mapLabs"></div><i class="dot" id="mapPin"></i></div>
 </dialog>
 <dialog id="logDlg" aria-labelledby="logTitle">
   <div class="dlg-head"><strong id="logTitle">Updates</strong><button type="button" class="text-btn" data-close>Close</button></div>
   <div class="log" id="log" lang="ko"></div>
 </dialog>
-<script src="app.js?v=20261113a"></script>
+<script src="app.js?v=20261113b"></script>
 </body>
 </html>

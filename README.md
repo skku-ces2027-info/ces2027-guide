@@ -12,8 +12,9 @@
 | `index.html` · `style.css` · `app.js` | 화면. 빌드 도구 없음. |
 | `data/items.csv` | 항목 한 줄 = 하나. 사이트가 이 파일을 읽어 필터와 목록을 만든다 |
 | `data/updates.csv` | `날짜,내용`. 머리띠의 '업데이트' 기록 창에 쓰인다 |
-| `maps/strip.svg` | 첫 화면의 수채 지도. 건물마다 이름표와 항목 수가 붙고, 이름표를 누르면 그 건물 항목만 남는다. 행을 펼치면 같은 지도에서 그 건물 위치를 보여 준다(`app.js`의 `PIN`). 좌표는 건물 단위이고 CES 2026 기준이다. 지도 데이터 © OpenStreetMap 기여자(ODbL) |
-| `maps/lvcc.svg` · `venetian_1f.svg` · `venetian_2f.svg` | 홀·층 배치도. 펼친 행의 'See the hall plan'으로 연다(`app.js`의 `plan`) |
+| `maps/strip.svg` | 첫 화면을 채우는 수채 지도. 건물마다 이름표와 항목 수가 붙고, 이름표를 누르면 그 건물 항목만 남는다(`app.js`의 `PIN`). 좌표는 건물 단위이고 CES 2026 기준이다. 지도 데이터 © OpenStreetMap 기여자(ODbL) |
+| `maps/strip_detail.svg` | 같은 지도를 번짐 없이 선명하게 그린 것. 행을 펼치면 그 건물 주변을 보여 주고, 누르면 전체 지도가 크게 열린다(`app.js`의 `openMap`) |
+| `maps/lvcc.svg` · `venetian_1f.svg` · `venetian_2f.svg` | 홀·층 배치도. 전체 지도 창의 두 번째 탭으로 나온다(`app.js`의 `plan`) |
 | `tools/refine_maps.py` | 가이드북 지도의 공개용 사본(원본)을 사이트용으로 다시 칠한다. 아래 '지도 다시 만들기' 참고 |
 | `og.png` | 링크를 공유할 때 보이는 미리보기 그림(1200×630) |
 
@@ -39,8 +40,8 @@ CSV에 새 값을 쓰면 `EN`에 영어 표기를 한 줄 더한다. 더하지 �
 
 ### 지도 다시 만들기
 
-`maps/strip.svg`는 원본 지도(가이드북 생성기가 내보낸 공개용 사본)를 `tools/refine_maps.py`로 다시 칠한 것이다.
-박혀 있던 글자와 지시선을 빼고, 주변 건물을 옅은 물감 면으로 바꾸고, 행사장 건물이 모두 온전히 들어오게 범위를 잡는다.
+`maps/strip.svg`와 `maps/strip_detail.svg`는 원본 지도(가이드북 생성기가 내보낸 공개용 사본)를 `tools/refine_maps.py`로 다시 칠한 것이다.
+박혀 있던 글자와 지시선을 빼고, 주변 건물을 옅은 물감 면으로 바꾸고, 행사장 건물이 모두 온전히 들어오게 범위를 잡는다. 한 번 실행하면 두 장이 함께 나온다.
 
 ```bash
 python3 tools/refine_maps.py <원본 strip.svg> --palette clear

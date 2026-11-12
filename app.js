@@ -25,14 +25,16 @@
 
   /* Map. Coordinates are in the map generator's space (1700 wide); VIEW is the part maps/strip.svg shows.
      Pins mark a building or hall, not a room. */
-  var VIEW=[-420,300,2120,1500], DATA_X=[0,1700];   // the map data itself spans x 0 to 1700; left of that is the fading wash
+  var VIEW=[-420,240,2120,1940];        // maps/strip.svg, the painted picture on the first screen
+  var DETAIL=[0,300,1700,1500];         // maps/strip_detail.svg, the plain map in an opened row and in the full map
   var PIN={   // building: [x, y, label side]
-    'Fontainebleau':[1056.8,418.8,'r'],'LVCC West':[1107.8,721.3,'r'],'LVCC North':[1404.1,832.6,'l'],'LVCC Central':[1520,700,'l'],'LVCC':[1300,640,'l'],
+    'Fontainebleau':[1045,575,'l'],'LVCC West':[1107.8,721.3,'r'],'LVCC North':[1404.1,832.6,'l'],'LVCC Central':[1520,700,'l'],'LVCC':[1300,640,'l'],
     'Wynn':[785,976.7,'r'],'Venetian':[633.7,1005.6,'l'],'Venetian Expo':[750.8,1098.6,'l'],'Sphere':[941.4,1115.3,'r'],'ARIA':[378.7,1370.1,'r']
   };
   var MAIN=['Fontainebleau','LVCC West','LVCC North','Venetian','Venetian Expo','Sphere','ARIA'];   // always labelled; the rest appear when they have items
   var PALAZZO=[681.3,884.5];
   var PLANS={
+    city:{src:'maps/strip_detail.svg',name:'Las Vegas venues',vb:DETAIL},
     lvcc:{src:'maps/lvcc.svg',name:'LVCC halls',vb:[0,200,1700,1140]},
     v2f:{src:'maps/venetian_2f.svg',name:'Venetian Expo, Level 2',vb:[0,1440,1500,350]},
     v1f:{src:'maps/venetian_1f.svg',name:'Venetian Expo, Level 1',vb:[0,1780,1500,350]}
@@ -252,7 +254,7 @@
     });
   }
   function drift(){
-    var top=document.querySelector('.top'), bar=$('bar'), mapIn=$('mapIn'), titleIn=$('titleIn'), wide=matchMedia('(min-width:900px)'), tick=false;
+    var top=document.querySelector('.top'), bar=$('bar'), mapIn=$('mapIn'), titleIn=$('titleIn'), wide=matchMedia('(min-width:900px) and (min-aspect-ratio:6/5)'), tick=false;
     function run(){
       tick=false;
       var y=window.scrollY, h=top.offsetHeight;
@@ -266,6 +268,38 @@
     window.addEventListener('scroll',function(){ if(!tick){ tick=true; requestAnimationFrame(run); } },{passive:true});
     window.addEventListener('resize',run); run();
   }
+
+  /* One move between the first screen and the schedule. Touch, the scrollbar and Page keys are handled by
+     CSS scroll snapping; a mouse wheel or an arrow key moves too little for that, so those are sent the whole way here */
+  var moving=0;
+  function go(y){ moving=Date.now(); window.scrollTo({top:y,behavior:calm?'auto':'smooth'}); }
+  function snap(){
+    var top=document.querySelector('.top'), last=0;
+    function fits(){ return top.offsetHeight<=window.innerHeight+2; }   // on small screens the first screen can be taller; let it scroll
+    function step(dir,fresh){
+      var y=window.scrollY, h=top.offsetHeight;
+      if(Date.now()-moving<800) return true;                // already on the way
+      if(dir>0&&y<h-1){ go(h); return true; }
+      if(dir<0&&y>0&&y<=h+1){ if(fresh) go(0); return true; }   // going back up starts with a new gesture, not leftover momentum
+      return false;
+    }
+    window.addEventListener('wheel',function(e){
+      if(e.ctrlKey||!fits()||document.querySelector('dialog[open]')) return;
+      var now=Date.now(), fresh=now-last>220; last=now;
+      if(step(e.deltaY>0?1:-1,fresh)) e.preventDefault();
+    },{passive:false});
+    window.addEventListener('keydown',function(e){
+      if(!fits()||/INPUT|TEXTAREA|SELECT/.test(e.target.tagName)||document.querySelector('dialog[open]')) return;
+      var dir=e.key==='ArrowDown'?1:e.key==='ArrowUp'?-1:0;
+      if(dir&&step(dir,true)) e.preventDefault();
+    });
+  }
+  // the opening zoom: as large as covers the screen without pushing a venue off the top or bottom
+  (function(){
+    var W=window.innerWidth, H=window.innerHeight, pad=Math.max(40,(W-1360)/2), res=pad+Math.min(480,.34*W)+24;
+    var z=Math.max(H/1660,Math.min(H/1400,(W-res)/1530));
+    document.documentElement.style.setProperty('--s',Math.max(1,Math.min(W/(2080*z),H/(1345*z))).toFixed(4));
+  })();
 
   function render(){ renderTabs(); renderTracks(); renderPanel(); renderPins(); renderList(); $('q').value=state.q; }
 
@@ -285,24 +319,36 @@
       +(!isS&&it['요약']?'<p class="d-sum" lang="ko">'+esc(it['요약'])+'</p>':'')
       +(note?'<p class="d-note" lang="ko"><b lang="en">Note for the delegation</b>'+esc(note)+'</p>':'')
       +'<dl class="kv">'+kv.map(function(p){ return '<dt>'+esc(p[0])+'</dt><dd>'+esc(p[1])+'</dd>'; }).join('')+'</dl>'
-      +'<div class="d-act">'+(url?'<a class="go" href="'+esc(url)+'" target="_blank" rel="noopener noreferrer">Open the source page</a>':'')
-      +(pl?'<button type="button" class="text-btn" data-plan>See the hall plan</button>':'')+'</div></div>'
-      +(xy?'<figure><div class="mini"><img alt="" src="maps/strip.svg"><i class="dot"></i></div><figcaption>'+esc(en(it['건물']))+' on the map. The pin marks the building, not the room.</figcaption></figure>':'');
+      +'<div class="d-act">'+(url?'<a class="go" href="'+esc(url)+'" target="_blank" rel="noopener noreferrer">Open the source page</a>':'')+'</div></div>'
+      +(xy?'<figure><button type="button" class="mini" data-map aria-label="Open the full map"><img alt="" src="'+PLANS.city.src+'"><i class="dot"></i><span class="open">Open the full map</span></button>'
+        +'<figcaption class="cap">'+esc(en(it['건물']))+(pl?'. The full map also has the hall plan.':'. The pin marks the building, not the room.')+'</figcaption></figure>':'');
     if(!xy){ box.classList.add('nomap'); return; }
     box.hidden=false;
     // show the building in the middle, without sliding the map past its own edge
-    var view=box.querySelector('.mini'), W=view.clientWidth, H=view.clientHeight, z=W/840;
-    var x=(xy[0]-VIEW[0])*z, y=(xy[1]-VIEW[1])*z;
-    var tx=Math.max(W-(DATA_X[1]-VIEW[0])*z,Math.min(-(DATA_X[0]-VIEW[0])*z,W/2-x)), ty=Math.max(H-VIEW[3]*z,Math.min(0,H/2-y));
-    var img=view.querySelector('img'); img.style.width=(VIEW[2]*z)+'px'; img.style.transform='translate('+tx+'px,'+ty+'px)';
+    var view=box.querySelector('.mini'), W=view.clientWidth, H=view.clientHeight, z=W/760;
+    var x=(xy[0]-DETAIL[0])*z, y=(xy[1]-DETAIL[1])*z;
+    var tx=Math.max(W-DETAIL[2]*z,Math.min(0,W/2-x)), ty=Math.max(H-DETAIL[3]*z,Math.min(0,H/2-y));
+    var img=view.querySelector('img'); img.style.width=(DETAIL[2]*z)+'px'; img.style.transform='translate('+tx+'px,'+ty+'px)';
     var dot=view.querySelector('.dot'); dot.style.left=(x+tx)+'px'; dot.style.top=(y+ty)+'px';
   }
-  function openPlan(it){
-    var p=plan(it), m=PLANS[p.map], vb=m.vb, stage=$('planImg').parentNode;
-    $('planTitle').textContent=m.name; $('planPlace').textContent=placeText(it);
-    $('planImg').src=m.src; stage.style.setProperty('--r',vb[2]/vb[3]);
-    $('planPin').style.left=((p.xy[0]-vb[0])/vb[2]*100)+'%'; $('planPin').style.top=((p.xy[1]-vb[1])/vb[3]*100)+'%';
-    $('planDlg').showModal();
+  /* The full map: the whole venue area with every building named and this item's building marked.
+     Where a hall plan exists, a second tab shows it */
+  function openMap(it){
+    var views=[{map:'city',xy:spot(it)}], pl=plan(it), cur=0;
+    if(pl) views.push(pl);
+    $('mapTitle').textContent=it['분류']==='세션'?it['원제목']:it['제목']; $('mapPlace').textContent=placeText(it);
+    function show(){
+      var v=views[cur], m=PLANS[v.map], vb=m.vb;
+      $('mapImg').src=m.src; $('mapStage').style.setProperty('--r',vb[2]/vb[3]);
+      $('mapPin').style.left=((v.xy[0]-vb[0])/vb[2]*100)+'%'; $('mapPin').style.top=((v.xy[1]-vb[1])/vb[3]*100)+'%';
+      $('mapLabs').innerHTML=v.map!=='city'?'':Object.keys(PIN).filter(function(b){ return MAIN.indexOf(b)>=0||b===it['건물']; }).map(function(b){
+        var here=b===it['건물'], p=here?v.xy:PIN[b];
+        return '<span class="lab '+(here?'here':PIN[b][2])+'" style="left:'+((p[0]-vb[0])/vb[2]*100)+'%;top:'+((p[1]-vb[1])/vb[3]*100)+'%">'+esc(b)+'</span>';
+      }).join('');
+      $('mapTabs').innerHTML=views.length<2?'':views.map(function(x,i){ return '<button type="button" class="chip" data-i="'+i+'" aria-pressed="'+(i===cur)+'">'+esc(PLANS[x.map].name)+'</button>'; }).join('');
+    }
+    $('mapTabs').onclick=function(e){ var b=e.target.closest('button'); if(b){ cur=+b.dataset.i; show(); } };
+    show(); $('mapDlg').showModal();
   }
 
   /* Hero numbers and the update log */
@@ -330,7 +376,8 @@
     var q=$('q'), timer, panel=$('panel'), fbtn=$('fbtn'), scrim=$('scrim');
     function setPanel(on){ panel.classList.toggle('on',on); scrim.classList.toggle('on',on); fbtn.setAttribute('aria-expanded',on?'true':'false'); }
     function reset(){ GROUPS.forEach(function(g){ state[g.key]=[]; }); state.q=''; writeHash(); render(); }
-    function toList(){ var top=$('bar').getBoundingClientRect().top; if(top>4) window.scrollBy({top:top,behavior:'smooth'}); }
+    function toList(){ if($('below').getBoundingClientRect().top>4) go($('below').offsetTop); }
+    $('cue').addEventListener('click',toList);
     q.addEventListener('input',function(){ clearTimeout(timer); timer=setTimeout(function(){
       var was=state.q; state.q=q.value.trim();
       if(!was&&state.q) state.d='all';             // a search looks through every day, so a match on another day is not hidden
@@ -355,8 +402,8 @@
       else prompt('Copy this address',location.href);
     });
     $('list').addEventListener('click',function(e){
-      var p=e.target.closest('[data-plan]');
-      if(p){ openPlan(BY_ID[p.closest('.row').dataset.id]); return; }
+      var p=e.target.closest('[data-map]');
+      if(p){ openMap(BY_ID[p.closest('.row').dataset.id]); return; }
       var b=e.target.closest('.row-b'); if(!b) return;
       var li=b.parentNode, box=li.querySelector('.detail'), on=box.hidden;
       box.hidden=!on; li.classList.toggle('open',on); b.setAttribute('aria-expanded',on?'true':'false');
@@ -374,7 +421,7 @@
     UPD=res[1].sort(function(a,b){ return b['날짜'].localeCompare(a['날짜']); });
     LATEST=UPD.length?UPD[0]['날짜']:''; NEWFROM=LATEST?addDays(LATEST,-7):'9999';
     var today=todayIso(); if(DAYS.indexOf(today)>=0) DEFAULT_DAY=today;   // during CES, open on today
-    readHash(); renderTop(); wire(); drift(); render();
+    readHash(); renderTop(); wire(); drift(); snap(); render();
   }).catch(function(err){
     $('list').innerHTML='<p class="empty">The data could not be loaded ('+esc(err.message)+'). Reload the page to try again.</p>';
   });

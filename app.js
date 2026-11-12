@@ -25,7 +25,7 @@
 
   /* Map. Coordinates are in the map generator's space (1700 wide); VIEW is the part maps/strip.svg shows.
      Pins mark a building or hall, not a room. */
-  var VIEW=[-420,240,2120,1940];        // maps/strip.svg, the painted picture on the first screen
+  var VIEW=[-420,240,2120,1940];        // the painted picture on the first screen (maps/hero-*.webp, rendered from maps/strip.svg)
   var DETAIL=[0,300,1700,1500];         // maps/strip_detail.svg, the plain map in an opened row and in the full map
   var PIN={   // building: [x, y, label side]
     'Fontainebleau':[1045,575,'l'],'LVCC West':[1107.8,721.3,'r'],'LVCC North':[1404.1,832.6,'l'],'LVCC Central':[1520,700,'l'],'LVCC':[1300,640,'l'],
@@ -361,15 +361,15 @@
       ['wheel','keydown','pointerdown','touchstart'].forEach(function(ev){ window.removeEventListener(ev,end,true); });
     }
     ['wheel','keydown','pointerdown','touchstart'].forEach(function(ev){ window.addEventListener(ev,end,{capture:true,passive:true}); });
-    // start once both pictures are in, or after three seconds at the latest
-    var imgs=[city.querySelector('img'),$('mapIn').querySelector('img')], left=imgs.length, started=false;
+    // start once both pictures are in and decoded, or after three seconds at the latest
+    var imgs=[city.querySelector('img'),$('mapIn').querySelector('img')], started=false;
     function go1(){
       if(started||over) return;
       if(document.hidden){ document.addEventListener('visibilitychange',go1,{once:true}); return; }
-      started=true; run();
+      started=true; performance.mark('intro-run'); run();
     }
-    imgs.forEach(function(im){ if(im.complete) left--; else { im.addEventListener('load',function(){ if(--left<=0) go1(); }); im.addEventListener('error',function(){ if(--left<=0) go1(); }); } });
-    if(left<=0) go1(); else setTimeout(go1,3000);
+    Promise.all(imgs.map(function(im){ return im.decode?im.decode().catch(function(){}):Promise.resolve(); })).then(go1);
+    setTimeout(go1,3000);
   }
 
   function render(){ renderTabs(); renderTracks(); renderPanel(); renderPins(); renderList(); $('q').value=state.q; }

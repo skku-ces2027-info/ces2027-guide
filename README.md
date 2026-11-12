@@ -12,11 +12,12 @@
 | `index.html` · `style.css` · `app.js` | 화면. 빌드 도구 없음. |
 | `data/items.csv` | 항목 한 줄 = 하나. 사이트가 이 파일을 읽어 필터와 목록을 만든다 |
 | `data/updates.csv` | `날짜,내용`. 머리띠의 '업데이트' 기록 창에 쓰인다 |
-| `maps/strip.svg` | 첫 화면을 채우는 수채 지도. 건물마다 이름표와 항목 수가 붙고, 이름표를 누르면 그 건물 항목만 남는다(`app.js`의 `PIN`). 좌표는 건물 단위이고 CES 2026 기준이다. 지도 데이터 © OpenStreetMap 기여자(ODbL) |
-| `maps/city.svg` | 라스베이거스 일대 전체의 간선도로 지도. 시작 장면에서만 쓴다. 화면이 이 지도에서 시작해 행사장 쪽으로 확대해 들어간 뒤 `strip.svg`로 넘어간다(`app.js`의 `intro`). 열 때마다 나오고 휠·키·터치로 바로 건너뛴다. 필터가 붙은 공유 링크(`#...`)로 열면 마지막 부분만 나온다 |
+| `maps/hero-*.webp` | 첫 화면을 채우는 수채 지도(폭 1000·1600·2600px). 원본은 `maps/strip.svg`이고 `tools/render_maps.mjs`가 그림으로 뽑는다. 브라우저가 열 때마다 SVG 필터를 계산하지 않게 하려는 것이다. 건물마다 이름표와 항목 수가 붙고, 이름표를 누르면 그 건물 항목만 남는다(`app.js`의 `PIN`). 좌표는 건물 단위이고 CES 2026 기준이다. 지도 데이터 © OpenStreetMap 기여자(ODbL) |
+| `maps/city-*.webp` | 라스베이거스 일대 전체의 간선도로 지도(원본 `maps/city.svg`). 시작 장면에서만 쓴다. 화면이 이 지도에서 시작해 행사장 쪽으로 확대해 들어간 뒤 수채 지도로 넘어간다(`app.js`의 `intro`). 열 때마다 나오고 휠·키·터치로 바로 건너뛴다. 필터가 붙은 공유 링크(`#...`)로 열면 마지막 부분만 나온다 |
 | `maps/strip_detail.svg` | 같은 지도를 번짐 없이 선명하게 그린 것. 행을 펼치면 그 건물 주변을 보여 주고, 누르면 전체 지도가 크게 열린다(`app.js`의 `openMap`) |
 | `maps/lvcc.svg` · `venetian_1f.svg` · `venetian_2f.svg` | 홀·층 배치도. 전체 지도 창의 두 번째 탭으로 나온다(`app.js`의 `plan`) |
 | `tools/refine_maps.py` | 가이드북 지도의 공개용 사본(원본)을 사이트용으로 다시 칠한다. 아래 '지도 다시 만들기' 참고 |
+| `tools/render_maps.mjs` | `maps/strip.svg`·`city.svg`를 WebP로 뽑는다(Node 22 이상과 Chrome 필요). 두 SVG를 다시 만들면 이것도 다시 돌린다 |
 | `tools/city_map.py` | OpenStreetMap에서 받은 도로 데이터로 `maps/city.svg`를 그린다. 받는 질의와 실행법은 파일 머리말에 있다 |
 | `og.png` | 링크를 공유할 때 보이는 미리보기 그림(1200×630) |
 
@@ -47,7 +48,10 @@ CSV에 새 값을 쓰면 `EN`에 영어 표기를 한 줄 더한다. 더하지 �
 
 ```bash
 python3 tools/refine_maps.py <원본 strip.svg> --palette clear
+node tools/render_maps.mjs
 ```
+
+`maps/strip.svg`와 `maps/city.svg`는 화면에서 직접 불러오지 않는 원본이다. 화면이 불러오는 SVG는 `strip_detail.svg`와 홀 배치도 세 장이다.
 
 `maps/city.svg`는 `strip.svg`와 같은 투영을 8분의 1로 줄여 그리므로, 화면에서 8배 키우면 두 지도가 정확히 겹친다. 범위(`VIEW`)를 바꾸면 `tools/city_map.py`도 다시 돌린다.
 

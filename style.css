@@ -9,7 +9,6 @@
   /* Map scale, in px per map unit. Large enough to cover the screen from top to bottom (1660 units of height),
      small enough that every venue stays whole (1400 units) and sits to the right of the title (1530 units) */
   --z:max(calc(100svh/1660),min(calc(100svh/1400),calc((100vw - var(--res))/1530)));
-  --s:1.15;                                                   /* opening zoom; app.js sets the exact value */
 }
 *{box-sizing:border-box}
 html{-webkit-text-size-adjust:100%;scroll-snap-type:y mandatory}
@@ -23,9 +22,9 @@ figure{margin:0}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
 .w{max-width:1360px;margin:0 auto;padding:0 40px}
 
-/* First screen: the painted map covers the whole screen and is soft on the left from the start.
-   It opens zoomed in and draws back; then the title comes in from the left.
-   Scrolling goes straight to the schedule (.below); see snap() in app.js */
+/* First screen: the painted map covers the whole screen and dissolves into the paper on the left.
+   The opening move (whole valley, then the venues, then the title) is set up in index.html and run by intro() in app.js;
+   the rules here describe the settled state. Scrolling goes straight to the schedule (.below); see snap() in app.js */
 .top,.below{scroll-snap-align:start}
 .top{position:relative;height:100svh;overflow:hidden;background:var(--paper)}
 .nav{position:absolute;left:var(--pad);right:var(--pad);top:0;height:64px;display:flex;justify-content:space-between;align-items:center;z-index:4}
@@ -34,23 +33,39 @@ figure{margin:0}
 .nav-r #stamp{color:var(--sub)}
 .log-btn{position:relative;font-weight:600}
 .log-btn.unseen::after{content:"";position:absolute;right:-8px;top:0;width:7px;height:7px;border-radius:50%;background:var(--cspace)}
-.map{position:absolute;inset:0;z-index:1;transform-origin:100% 50%;animation:map-in 1.8s cubic-bezier(.33,.5,.2,1) .5s both}
+.map{position:absolute;inset:0;z-index:1}
+.zoom{position:absolute;inset:0;transform-origin:100% 50%;will-change:transform}
 /* the picture is 2120 x 1940 units; x = 1660 meets the right edge and y = 1070, the middle of the venues, sits at mid-height */
 .map-in{position:absolute;right:calc(var(--z)*-40);top:calc(50% - var(--z)*830);width:calc(var(--z)*2120);height:calc(var(--z)*1940);will-change:transform}
-.map img{display:block;width:100%;height:100%;-webkit-mask-image:linear-gradient(to right,transparent 0,#000 16%);mask-image:linear-gradient(to right,transparent 0,#000 16%)}   /* no venue in the left 16% */
+.map img{display:block;width:100%;height:100%}
+/* The venue map is soft on the left for good (no venue in its left 16%). During the opening move its other three
+   edges are soft too, by --edge, so it never shows as a hard rectangle while it is smaller than the screen */
+@property --edge{syntax:'<percentage>';inherits:true;initial-value:0%}
+.map-in img{
+  -webkit-mask-image:linear-gradient(to right,transparent 0,#000 16%),linear-gradient(to left,transparent 0,#000 var(--edge)),linear-gradient(to bottom,transparent 0,#000 var(--edge)),linear-gradient(to top,transparent 0,#000 var(--edge));
+  mask-image:linear-gradient(to right,transparent 0,#000 16%),linear-gradient(to left,transparent 0,#000 var(--edge)),linear-gradient(to bottom,transparent 0,#000 var(--edge)),linear-gradient(to top,transparent 0,#000 var(--edge));
+  -webkit-mask-composite:source-in;mask-composite:intersect}
+/* The valley map: drawn at twice the venue map's size around the same middle, then enlarged 4 times, which puts it
+   exactly under the venue map at 8 times the scale. Hidden once the opening move is over */
+.city{position:absolute;right:calc(var(--z)*-1100);top:calc(50% - var(--z)*1800);width:calc(var(--z)*4240);height:calc(var(--z)*3880);transform:scale(4);opacity:0;pointer-events:none}
+.city-lab{position:absolute;transform:translate(-50%,-50%);font-size:25px;font-weight:700;letter-spacing:-.01em;white-space:nowrap;color:var(--ink);text-shadow:0 0 6px var(--paper),0 0 6px var(--paper),0 0 12px var(--paper)}
+.city-lab.here{padding:5px 16px;border-radius:999px;background:var(--ink);color:#fff;text-shadow:none;transform:translate(-50%,-500%)}
 .veil{position:absolute;inset:0;z-index:2;pointer-events:none;background:linear-gradient(to right,var(--paper) 0,var(--paper) calc(var(--res) - 190px),rgba(251,249,244,0) var(--res))}
-.title{position:absolute;left:var(--pad);top:50%;width:min(480px,34vw);transform:translateY(-50%);z-index:3;animation:title-in .9s cubic-bezier(.2,.7,.2,1) 1.5s both}
+.title{position:absolute;left:var(--pad);top:50%;width:min(480px,34vw);transform:translateY(-50%);z-index:3;}
 h1{margin:0;font-size:clamp(40px,4.3vw,62px);line-height:1.04;letter-spacing:-.045em;font-weight:800}
 .lead{margin:22px 0 0;font-size:clamp(15.5px,1.25vw,18px);color:var(--sub);max-width:23em}
 .dues{display:flex;flex-wrap:wrap;gap:18px 34px;margin-top:34px;font-size:14px;color:var(--sub)}
 .dues li{max-width:15em}
 .dues b{display:block;font-size:clamp(25px,2.2vw,32px);font-weight:800;letter-spacing:-.04em;line-height:1.15;color:var(--ink)}
-.cue{position:absolute;left:var(--pad);bottom:34px;z-index:3;display:flex;align-items:center;gap:10px;height:46px;padding:0 20px 0 22px;border-radius:999px;background:var(--ink);color:#fff;font-size:15px;font-weight:650;animation:fade-in .6s ease 2.1s both}
+.cue{position:absolute;left:var(--pad);bottom:34px;z-index:3;display:flex;align-items:center;gap:10px;height:46px;padding:0 20px 0 22px;border-radius:999px;background:var(--ink);color:#fff;font-size:15px;font-weight:650}
 .cue::after{content:"";width:8px;height:8px;border-right:2px solid;border-bottom:2px solid;transform:translateY(-3px) rotate(45deg)}
 .cue:hover{background:#2C3B4D}
-@keyframes map-in{from{transform:scale(var(--s))}to{transform:none}}
-@keyframes title-in{from{opacity:0;transform:translate(-56px,-50%)}to{opacity:1;transform:translate(0,-50%)}}
-@keyframes fade-in{from{opacity:0}to{opacity:1}}
+/* where things stand before the opening move starts */
+.intro .zoom{transform:translate(var(--tx),var(--ty)) scale(var(--a))}
+.intro .city{opacity:1}
+.intro .map-in{--edge:24%}
+.intro-short .zoom{transform:scale(var(--s))}
+.intro .veil,.intro #titleIn,.intro .cue,.intro #pins,.intro-short #titleIn,.intro-short .cue,.intro-short #pins{opacity:0}
 
 /* Building labels on the map: a count and a name; pressing one keeps only that building */
 .pin{position:absolute;z-index:2;transform:translate(-17px,-50%);display:flex;align-items:center;gap:7px;height:34px;padding:0 13px 0 5px;border-radius:999px;background:#fff;font-size:14px;font-weight:650;white-space:nowrap;box-shadow:0 2px 10px rgba(30,42,56,.22);transition:background .15s,color .15s}
@@ -59,7 +74,6 @@ h1{margin:0;font-size:clamp(40px,4.3vw,62px);line-height:1.04;letter-spacing:-.0
 .pin:hover{background:var(--wash)}
 .pin[aria-pressed="true"]{background:var(--ink);color:#fff}
 .pin.zero{opacity:.6}
-#pins.intro .pin{animation:fade-in .45s ease-out both}
 .venues{display:none}
 
 /* Sticky bar: day tabs, search, filters; then tracks and the result count */
@@ -190,15 +204,21 @@ dialog::backdrop{background:rgba(30,42,56,.45)}
   .nav{position:static;height:52px;padding:0 18px}
   .nav-r{background:none;padding:0}
   .nav-r #stamp{display:none}
-  .map{position:relative;inset:auto;width:100%;aspect-ratio:1700/1500;overflow:hidden;animation:fade-in .7s ease-out both}
-  .map-in{right:0;top:-4%;width:auto;height:129.333%;aspect-ratio:2120/1940}     /* shows x 0 to 1700, y 300 to 1800 */
-  .map img{-webkit-mask-image:linear-gradient(to bottom,transparent 3%,#000 8%,#000 78%,transparent 81%);mask-image:linear-gradient(to bottom,transparent 3%,#000 8%,#000 78%,transparent 81%)}
+  .map{position:relative;inset:auto;width:100%;aspect-ratio:1700/1500;overflow:hidden}
+  .zoom{transform-origin:50% 50%}
+  .map-in,.city{right:0;top:-4%;width:auto;height:129.333%;aspect-ratio:2120/1940}     /* shows x 0 to 1700, y 300 to 1800 */
+  .city{transform:scale(8)}
+  .city-lab{font-size:15px}
+  .city img{-webkit-mask-image:none;mask-image:none}
+  /* the box shows the picture from 19.8% across (map x = 0) and from 3% to 80% down */
+  .map-in img{
+    -webkit-mask-image:linear-gradient(to bottom,transparent 3%,#000 calc(8% + var(--edge)),#000 calc(78% - var(--edge)),transparent 81%),linear-gradient(to right,transparent 19.8%,#000 calc(19.8% + var(--edge))),linear-gradient(to left,transparent 0,#000 var(--edge));
+    mask-image:linear-gradient(to bottom,transparent 3%,#000 calc(8% + var(--edge)),#000 calc(78% - var(--edge)),transparent 81%),linear-gradient(to right,transparent 19.8%,#000 calc(19.8% + var(--edge))),linear-gradient(to left,transparent 0,#000 var(--edge))}
   .veil,.cue{display:none}
   .pin,.pin.l{height:28px;padding:0 3px;gap:0;font-size:0;transform:translate(-50%,-50%)}
   .pin i{min-width:22px;height:22px;font-size:12.5px}
   .pin[aria-pressed="true"]{box-shadow:0 0 0 3px var(--ink)}
-  .title{position:static;width:auto;padding:4px 18px 0;transform:none;animation:title-in-m .7s cubic-bezier(.2,.7,.2,1) .45s both}
-  @keyframes title-in-m{from{opacity:0;transform:translateX(-28px)}to{opacity:1;transform:none}}
+  .title{position:static;width:auto;padding:4px 18px 0;transform:none}
   h1{font-size:clamp(40px,6vw,56px)}
   .lead{margin-top:12px;font-size:15.5px}
   .dues{margin-top:20px;gap:14px 26px;font-size:12.5px}
@@ -245,7 +265,7 @@ dialog::backdrop{background:rgba(30,42,56,.45)}
 }
 @media (prefers-reduced-motion:reduce){
   html{scroll-snap-type:none}
-  .map,.title,.cue,#pins.intro .pin,.dot::after{animation:none}
+  .dot::after{animation:none}
   .pin,.bar{transition:none}
   .reveal .slot>h3,.reveal .dayhead,.reveal .slot .row{opacity:1;transform:none;transition:none}
 }

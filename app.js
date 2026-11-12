@@ -170,7 +170,6 @@
     });
     $('fcount').textContent=picked||'';
   }
-  var introDone=false;
   function renderPins(){
     var g=GROUPS[3], cnt={};
     ITEMS.forEach(function(it){ if(matches(it,g)) g.get(it).forEach(function(v){ cnt[v]=(cnt[v]||0)+1; }); });
@@ -180,11 +179,6 @@
       var p=PIN[b], on=state.b.indexOf(b)>=0, n=cnt[b]||0;
       return '<button type="button" class="pin '+p[2]+(n?'':' zero')+'" data-b="'+esc(b)+'" aria-pressed="'+on+'" aria-label="'+esc(b+', '+n+' items')+'" style="--c:var(--'+campus(b)+');left:'+((p[0]-VIEW[0])/VIEW[2]*100)+'%;top:'+((p[1]-VIEW[1])/VIEW[3]*100)+'%"><i>'+n+'</i>'+esc(b)+'</button>';
     }).join('');
-    if(!introDone){   // the first labels wait for the opening move to finish
-      introDone=true; box.className='intro';
-      var wait=Math.max(0,2300-performance.now());
-      [].forEach.call(box.children,function(el,i){ el.style.animationDelay=(wait+i*50)+'ms'; });
-    } else box.className='';
     $('venues').innerHTML=names.map(function(b){
       return '<button type="button" class="chip" data-b="'+esc(b)+'" aria-pressed="'+(state.b.indexOf(b)>=0)+'" style="--c:var(--'+campus(b)+')">'+esc(b)+'<span class="n">'+(cnt[b]||0)+'</span></button>';
     }).join('');
@@ -316,12 +310,63 @@
       if(dir&&step(dir,true)) e.preventDefault();
     });
   }
-  // the opening zoom: as large as covers the screen without pushing a venue off the top or bottom
-  (function(){
-    var W=window.innerWidth, H=window.innerHeight, pad=Math.max(40,(W-1360)/2), res=pad+Math.min(480,.34*W)+24;
-    var z=Math.max(H/1660,Math.min(H/1400,(W-res)/1530));
-    document.documentElement.style.setProperty('--s',Math.max(1,Math.min(1.12,W/(2080*z),H/(1345*z))).toFixed(4));
-  })();
+  /* The opening move. index.html has already put the map at its starting position (window.__intro).
+     Long form: the whole valley, closing in until the venue map fills the screen, then drawing back as the title comes in.
+     Short form, for later visits in the same session: only the drawing back. Any wheel, key or press ends it at once */
+  var CITY_LABELS=[['Downtown',36.170,-115.142],['Airport (LAS)',36.084,-115.150],['North Las Vegas',36.215,-115.110],['Henderson',36.032,-115.030],['Summerlin',36.180,-115.305]];
+  function intro(){
+    var g=window.__intro, root=document.documentElement;
+    if(!g) return;
+    var K=8, cx=VIEW[0]+VIEW[2]/2, cy=VIEW[1]+VIEW[3]/2, LAT_N=36.1452, LON_W=-115.1830, KX=111320*Math.cos(36.12*Math.PI/180), KY=110950, SC=.5001, OY=377.5, TILT=.58;
+    function at(lat,lon){   // latitude and longitude to a position in the valley picture, in percent
+      var x=(lon-LON_W)*KX*SC, y=OY+(LAT_N-lat)*KY*SC*TILT;
+      return 'left:'+((cx+(x-cx)/K-VIEW[0])/VIEW[2]*100).toFixed(2)+'%;top:'+((cy+(y-cy)/K-VIEW[1])/VIEW[3]*100).toFixed(2)+'%';
+    }
+    $('cityLabs').innerHTML=CITY_LABELS.map(function(l){ return '<span class="city-lab" style="'+at(l[1],l[2])+'">'+esc(l[0])+'</span>'; }).join('')
+      +'<span class="city-lab here" style="left:50%;top:50%">CES 2027</span>';
+    var zoom=$('zoom'), city=$('city'), stacked=g.s===1&&g.O[0]!==window.innerWidth, anims=[], over=false;
+    function T(tx,ty,k){ return 'translate('+tx.toFixed(2)+'px,'+ty.toFixed(2)+'px) scale('+k.toFixed(5)+')'; }
+    function ease(u){ return u<.5?4*u*u*u:1-Math.pow(-2*u+2,3)/2; }
+    function play(el,frames,dur,delay,easing,fill){ var a=el.animate(frames,{duration:dur,delay:delay||0,easing:easing||'linear',fill:fill||'both'}); anims.push(a); return a; }
+    function fade(el,from,to,dur,delay){ return play(el,[{opacity:from},{opacity:to}],dur,delay,'ease'); }
+    function run(){
+      var HOLD=350, IN=2600, REST=300, OUT=g.s>1?1700:0, t=0;
+      if(g.long){
+        // scale grows by a constant ratio per step, which the eye reads as a steady approach
+        var B=[g.O[0]+g.s*(g.c[0]-g.O[0]),g.O[1]+g.s*(g.c[1]-g.O[1])], frames=[], N=24;
+        for(var i=0;i<=N;i++){
+          var k=g.a*Math.pow(g.s/g.a,ease(i/N)), v=(k-g.a)/(g.s-g.a);
+          var px=g.A[0]+(B[0]-g.A[0])*v, py=g.A[1]+(B[1]-g.A[1])*v;
+          frames.push({transform:T(px-g.O[0]-k*(g.c[0]-g.O[0]),py-g.O[1]-k*(g.c[1]-g.O[1]),k)});
+        }
+        play(zoom,frames,IN,HOLD);
+        fade($('cityLabs'),1,0,IN*.25,HOLD+IN*.2);
+        fade(city,1,0,IN*.3,HOLD+IN*.7);                                     // the valley stays until the venue map all but fills the screen
+        play($('mapIn'),[{'--edge':'24%'},{'--edge':'0%'}],IN*.45,HOLD+IN*.5,'ease');   // the venue map's edges firm up as it grows
+        if(!stacked) fade($('veil'),0,1,IN*.4,HOLD+IN*.6);
+        t=HOLD+IN+REST;
+      } else t=250;
+      // 'forwards' only: while it waits, this one must not hold the map at its own first frame over the approach above
+      if(OUT) play(zoom,[{transform:T(0,0,g.s)},{transform:T(0,0,1)}],OUT,t,'cubic-bezier(.33,.5,.2,1)',g.long?'forwards':'both');
+      var tt=t+OUT*.6;
+      play($('titleIn'),[{opacity:0,transform:'translateX('+(stacked?-28:-56)+'px)'},{opacity:1,transform:'none'}],900,tt,'cubic-bezier(.2,.7,.2,1)');
+      fade($('pins'),0,1,500,tt+500);
+      fade($('cue'),0,1,500,tt+800).finished.then(end,function(){});
+    }
+    function end(){
+      if(over) return; over=true;
+      anims.forEach(function(a){ a.cancel(); });      // the settled state comes from the stylesheet
+      root.classList.remove('intro','intro-short');
+      try{ sessionStorage.setItem('ces27.intro','1'); }catch(e){}
+      ['wheel','keydown','pointerdown','touchstart'].forEach(function(ev){ window.removeEventListener(ev,end,true); });
+    }
+    ['wheel','keydown','pointerdown','touchstart'].forEach(function(ev){ window.addEventListener(ev,end,{capture:true,passive:true}); });
+    // start once both pictures are in, or after three seconds at the latest
+    var imgs=[city.querySelector('img'),$('mapIn').querySelector('img')], left=imgs.length, started=false;
+    function go1(){ if(!started&&!over){ started=true; run(); } }
+    imgs.forEach(function(im){ if(im.complete) left--; else { im.addEventListener('load',function(){ if(--left<=0) go1(); }); im.addEventListener('error',function(){ if(--left<=0) go1(); }); } });
+    if(left<=0) go1(); else setTimeout(go1,3000);
+  }
 
   function render(){ renderTabs(); renderTracks(); renderPanel(); renderPins(); renderList(); $('q').value=state.q; }
 
@@ -437,6 +482,7 @@
     window.addEventListener('hashchange',function(){ readHash(); render(); });
   }
 
+  intro();
   function load(path){ return fetch(path,{cache:'no-cache'}).then(function(r){ if(!r.ok) throw new Error(path+' '+r.status); return r.text(); }).then(parseCSV); }
   Promise.all([load('data/items.csv'),load('data/updates.csv')]).then(function(res){
     ITEMS=res[0]; ITEMS.forEach(function(it){ BY_ID[it['id']]=it; });

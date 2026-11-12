@@ -14,7 +14,29 @@
 <meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%231E2A38'/%3E%3Ccircle cx='16' cy='13.5' r='6' fill='none' stroke='%23FBF9F4' stroke-width='3.2'/%3E%3Cpath d='M16 27l-5.2-7.4h10.4z' fill='%23FBF9F4'/%3E%3C/svg%3E">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
-<link rel="stylesheet" href="style.css?v=20261113c">
+<link rel="stylesheet" href="style.css?v=20261113d">
+<script>
+/* Opening move, set up before the first paint so nothing jumps. The page starts on the whole Las Vegas valley
+   (maps/city.svg), closes in until the venue map fills the screen, then draws back to make room for the title.
+   This only works out the starting position; app.js runs the move. Seen once per browser session in full. */
+(function(){
+  var d=document.documentElement,W=innerWidth,H=innerHeight,K=8,seen=0,g;
+  if(matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  try{ seen=sessionStorage.getItem('ces27.intro'); }catch(e){}
+  if(matchMedia('(max-width:899px),(max-aspect-ratio:6/5)').matches){    // map box on top: zoom inside the box
+    if(seen) return;
+    var hb=W/1.13333,ih=1.29333*hb,iw=ih*2120/1940;
+    g={O:[W/2,hb/2],c:[W-iw/2,ih/2-.04*hb],s:1,a:Math.max(W/iw,hb/ih)/K}; g.A=g.O;
+  } else {                                                               // same numbers as --z in style.css
+    var pad=Math.max(40,(W-1360)/2),res=pad+Math.min(480,.34*W)+24,z=Math.max(H/1660,Math.min(H/1400,(W-res)/1530));
+    g={O:[W,H/2],c:[W-1020*z,H/2+140*z],s:Math.max(1,Math.min(1.12,W/(2080*z),H/(1345*z))),a:Math.max(W/(2120*z),H/(1940*z))/K}; g.A=[W/2,H/2];
+  }
+  // O: the point the map scales about. c: the middle of the venue map. A: where that middle starts on screen
+  g.tx=g.A[0]-g.O[0]-g.a*(g.c[0]-g.O[0]); g.ty=g.A[1]-g.O[1]-g.a*(g.c[1]-g.O[1]); g.long=!seen;
+  d.style.setProperty('--a',g.a); d.style.setProperty('--tx',g.tx+'px'); d.style.setProperty('--ty',g.ty+'px'); d.style.setProperty('--s',g.s);
+  d.className=seen?'intro-short':'intro'; window.__intro=g;
+})();
+</script>
 </head>
 <body>
 <div class="top">
@@ -23,12 +45,15 @@
     <span class="nav-r"><span id="stamp"></span><button type="button" class="log-btn" id="logBtn">Updates</button></span>
   </header>
   <div class="map">
-    <div class="map-in" id="mapIn">
-      <img src="maps/strip.svg" width="2120" height="1940" alt="Painted map of the CES venues in Las Vegas" fetchpriority="high">
-      <div id="pins"></div>
+    <div class="zoom" id="zoom">
+      <div class="city" id="city"><img src="maps/city.svg" width="2120" height="1940" alt=""><div id="cityLabs"></div></div>
+      <div class="map-in" id="mapIn">
+        <img src="maps/strip.svg" width="2120" height="1940" alt="Painted map of the CES venues in Las Vegas" fetchpriority="high">
+        <div id="pins"></div>
+      </div>
     </div>
   </div>
-  <div class="veil"></div>
+  <div class="veil" id="veil"></div>
   <section class="title">
     <div id="titleIn">
       <h1>CES 2027<br>Delegation Guide</h1>
@@ -81,6 +106,6 @@
   <div class="dlg-head"><strong id="logTitle">Updates</strong><button type="button" class="text-btn" data-close>Close</button></div>
   <div class="log" id="log" lang="ko"></div>
 </dialog>
-<script src="app.js?v=20261113c"></script>
+<script src="app.js?v=20261113d"></script>
 </body>
 </html>

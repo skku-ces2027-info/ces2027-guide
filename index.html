@@ -14,15 +14,15 @@
 <meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%231E2A38'/%3E%3Ccircle cx='16' cy='13.5' r='6' fill='none' stroke='%23FBF9F4' stroke-width='3.2'/%3E%3Cpath d='M16 27l-5.2-7.4h10.4z' fill='%23FBF9F4'/%3E%3C/svg%3E">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
-<link rel="stylesheet" href="style.css?v=20261113f">
+<link rel="stylesheet" href="style.css?v=20261113h">
 <script>
 /* Opening move, set up before the first paint so nothing jumps. The page starts on the whole Las Vegas valley
    (maps/city.svg), closes in until the venue map fills the screen, then draws back to make room for the title.
-   This only works out the starting position; app.js runs the move. Seen once per browser session in full. */
+   This only works out the starting position; app.js runs the move. A link that carries a filter (a hash) gets only
+   the last part, so a shared view opens quickly. */
 (function(){
-  var d=document.documentElement,W=innerWidth,H=innerHeight,K=8,seen=0,g;
+  var d=document.documentElement,W=innerWidth,H=innerHeight,K=8,seen=location.hash.length>1,g;
   if(matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-  try{ seen=sessionStorage.getItem('ces27.intro'); }catch(e){}
   if(matchMedia('(max-width:899px),(max-aspect-ratio:6/5)').matches){    // map box on top: zoom inside the box
     if(seen) return;
     var hb=W/1.13333,ih=1.29333*hb,iw=ih*2120/1940;
@@ -107,7 +107,8 @@
         <h2>Made by <span lang="ko">만든 사람</span></h2>
         <p><b>Jihoon Kim</b><br>Lead mentor of the delegation<br>Sungkyunkwan University School of Medicine</p>
         <p lang="ko"><b>김지훈</b><br>연수단 총괄멘토<br>성균관대학교 의과대학</p>
-        <p><a href="mailto:ktim0805@skku.edu">ktim0805@skku.edu</a></p>
+        <p><a href="mailto:ktim0805@gmail.com">ktim0805@gmail.com</a></p>
+        <p><a href="https://github.com/skku-ces2027-info/ces2027-guide" target="_blank" rel="noopener noreferrer">GitHub</a></p>
       </section>
       <section>
         <h2>Rights and credits <span lang="ko">저작권과 출처</span></h2>
@@ -130,6 +131,6 @@
   <div class="dlg-head"><strong id="logTitle">Updates</strong><button type="button" class="text-btn" data-close>Close</button></div>
   <div class="log" id="log" lang="ko"></div>
 </dialog>
-<script src="app.js?v=20261113f"></script>
+<script src="app.js?v=20261113h"></script>
 </body>
 </html>

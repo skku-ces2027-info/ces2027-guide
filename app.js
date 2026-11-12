@@ -312,7 +312,8 @@
   }
   /* The opening move. index.html has already put the map at its starting position (window.__intro).
      Long form: the whole valley, closing in until the venue map fills the screen, then drawing back as the title comes in.
-     Short form, for later visits in the same session: only the drawing back. Any wheel, key or press ends it at once */
+     Short form, for links that carry a filter: only the drawing back. Any wheel, key or press ends it at once.
+     It waits until the page is actually on screen, so a tab opened in the background still shows it */
   var CITY_LABELS=[['Downtown',36.170,-115.142],['Airport (LAS)',36.084,-115.150],['North Las Vegas',36.215,-115.110],['Henderson',36.032,-115.030],['Summerlin',36.180,-115.305]];
   function intro(){
     var g=window.__intro, root=document.documentElement;
@@ -357,13 +358,16 @@
       if(over) return; over=true;
       anims.forEach(function(a){ a.cancel(); });      // the settled state comes from the stylesheet
       root.classList.remove('intro','intro-short');
-      try{ sessionStorage.setItem('ces27.intro','1'); }catch(e){}
       ['wheel','keydown','pointerdown','touchstart'].forEach(function(ev){ window.removeEventListener(ev,end,true); });
     }
     ['wheel','keydown','pointerdown','touchstart'].forEach(function(ev){ window.addEventListener(ev,end,{capture:true,passive:true}); });
     // start once both pictures are in, or after three seconds at the latest
     var imgs=[city.querySelector('img'),$('mapIn').querySelector('img')], left=imgs.length, started=false;
-    function go1(){ if(!started&&!over){ started=true; run(); } }
+    function go1(){
+      if(started||over) return;
+      if(document.hidden){ document.addEventListener('visibilitychange',go1,{once:true}); return; }
+      started=true; run();
+    }
     imgs.forEach(function(im){ if(im.complete) left--; else { im.addEventListener('load',function(){ if(--left<=0) go1(); }); im.addEventListener('error',function(){ if(--left<=0) go1(); }); } });
     if(left<=0) go1(); else setTimeout(go1,3000);
   }

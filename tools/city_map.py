@@ -21,7 +21,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import re   # noqa: E402
-from refine_maps import DEFS, MAPS, MARK, PALETTES, RAW_VENUE, VIEW   # noqa: E402
+from refine_maps import MAPS, MARK, PALETTES, RAW_VENUE, VIEW   # noqa: E402
 
 K = 8                                   # how many times wider this map is than the venue map
 CX, CY = VIEW[0] + VIEW[2] / 2, VIEW[1] + VIEW[3] / 2      # the point both maps share
@@ -40,9 +40,23 @@ def place(lat, lon):
     return CX + (x - CX) / K, CY + (y - CY) / K
 
 
-# class: (wash width, surface width), drawn in this order so wider roads lie on top. The wash is a broad pale
-# stroke under each road; where the street grid is dense the washes run together and read as the built-up area
-ROADS = [('secondary', 7.5, 1.5), ('primary', 9.0, 2.5), ('trunk', 10.0, 4.0), ('motorway', 12.0, 5.4)]
+# class: (edge width, surface width), drawn in this order so wider roads lie on top.
+# Roads are drawn as in the venue map: a white surface with a thin edge in the venue map's edge colour. Enlarged
+# 8 times they come out about a third wider than that map's roads (its secondary roads are 14 and 8 units wide),
+# which is as close as they can be while staying visible when the whole valley is on screen
+ROADS = [('secondary', 2.7, 1.4), ('primary', 3.2, 1.8), ('trunk', 3.8, 2.3), ('motorway', 4.4, 2.9)]
+
+# The venue map's paint filter with its sizes divided by 8, so the wobble and blur match once this map is enlarged
+DEFS = ('<defs><filter id="paint" x="-3%" y="-3%" width="106%" height="106%">'
+        '<feTurbulence type="fractalNoise" baseFrequency=".11" numOctaves="3" seed="7" result="n"/>'
+        '<feDisplacementMap in="SourceGraphic" in2="n" scale="1.6" xChannelSelector="R" yChannelSelector="G" result="d"/>'
+        '<feGaussianBlur in="d" stdDeviation=".12" result="b"/>'
+        '<feTurbulence type="fractalNoise" baseFrequency="2.4" numOctaves="2" seed="2" result="g"/>'
+        '<feColorMatrix in="g" type="matrix" values="0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 -.4 1.1" result="grain"/>'
+        '<feComposite in="b" in2="grain" operator="in"/></filter></defs>')
+
+
+EDGE = '#c4bfb0'                        # darker than the venue map's road edge, to hold up at valley scale
 
 
 def venue_shapes(raw, pal):
@@ -77,12 +91,12 @@ def paint_city(files, pal, venues=''):
                 pts.append(end)
             if len(pts) > 1 and any(x0 - 30 <= x <= x0 + w + 30 and y0 - 30 <= y <= y0 + h + 30 for x, y in pts):
                 lines[kind].append('M' + 'L'.join('%d %d' % (round(p[0]), round(p[1])) for p in pts))
-    # each class is written once and drawn twice (wash, then surface)
+    # each class is written once and drawn twice (edge, then surface)
     shapes = ''.join('<path id="r-%s" d="%s"/>' % (name, ''.join(lines[name])) for name, _, _ in ROADS)
-    out = ['<path d="%s" stroke="%s" stroke-width="5"/>' % (''.join(lines['runway']), pal['context'][2])]
-    for name, wash, surface in ROADS:
-        out.append('<use href="#r-%s" stroke="%s" stroke-width="%.1f"/>' % (name, pal['context'][0], wash))
-    for name, wash, surface in ROADS:
+    out = ['<path d="%s" stroke="%s" stroke-width="4"/>' % (''.join(lines['runway']), pal['context'][0])]
+    for name, edge, surface in ROADS:
+        out.append('<use href="#r-%s" stroke="%s" stroke-width="%.1f"/>' % (name, EDGE, edge))
+    for name, edge, surface in ROADS:
         out.append('<use href="#r-%s" stroke="%s" stroke-width="%.1f"/>' % (name, pal['road'], surface))
     counts = ', '.join('%s %d' % (k, len(v)) for k, v in lines.items())
     return ('<svg xmlns="http://www.w3.org/2000/svg" viewBox="%d %d %d %d" role="img">%s' % (x0, y0, w, h, MARK) + DEFS

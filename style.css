@@ -49,7 +49,6 @@ figure{margin:0}
    exactly under the venue map at 8 times the scale. Hidden once the opening move is over */
 .city{position:absolute;right:calc(var(--z)*-1100);top:calc(50% - var(--z)*1800);width:calc(var(--z)*4240);height:calc(var(--z)*3880);transform:scale(4);opacity:0;pointer-events:none}
 .city-lab{position:absolute;transform:translate(-50%,-50%);font-size:25px;font-weight:700;letter-spacing:-.01em;white-space:nowrap;color:var(--ink);text-shadow:0 0 6px var(--paper),0 0 6px var(--paper),0 0 12px var(--paper)}
-.city-lab.here{padding:5px 16px;border-radius:999px;background:var(--ink);color:#fff;text-shadow:none;transform:translate(-50%,-500%)}
 .veil{position:absolute;inset:0;z-index:2;pointer-events:none;background:linear-gradient(to right,var(--paper) 0,var(--paper) calc(var(--res) - 190px),rgba(251,249,244,0) var(--res))}
 .title{position:absolute;left:var(--pad);top:50%;width:min(480px,34vw);transform:translateY(-50%);z-index:3;}
 h1{margin:0;font-size:clamp(40px,4.3vw,62px);line-height:1.04;letter-spacing:-.045em;font-weight:800}
@@ -63,7 +62,7 @@ h1{margin:0;font-size:clamp(40px,4.3vw,62px);line-height:1.04;letter-spacing:-.0
 /* where things stand before the opening move starts */
 .intro .zoom{transform:translate(var(--tx),var(--ty)) scale(var(--a))}
 .intro .city{opacity:1}
-.intro .map-in{--edge:24%}
+.intro .map-in{--edge:24%;opacity:0}
 .intro-short .zoom{transform:scale(var(--s))}
 .intro .veil,.intro #titleIn,.intro .cue,.intro #pins,.intro-short #titleIn,.intro-short .cue,.intro-short #pins{opacity:0}
 
@@ -79,14 +78,14 @@ h1{margin:0;font-size:clamp(40px,4.3vw,62px);line-height:1.04;letter-spacing:-.0
 /* Sticky bar: day tabs, search, filters; then tracks and the result count */
 .bar{position:sticky;top:0;z-index:20;background:#fff;border-bottom:1px solid var(--ink);transition:box-shadow .25s ease}
 .bar.stuck{box-shadow:0 6px 24px rgba(30,42,56,.1)}
-.bar-1{display:flex;align-items:center;gap:26px;height:68px}
-.tabs{display:flex;gap:28px;align-self:stretch;min-width:0;flex:0 1 auto;overflow-x:auto;scrollbar-width:none}
+.bar-1{display:flex;align-items:center;gap:22px;height:68px}
+.tabs{display:flex;gap:24px;align-self:stretch;min-width:0;flex:0 1 auto;overflow-x:auto;scrollbar-width:none}
 .tabs::-webkit-scrollbar,.tracks::-webkit-scrollbar,.venues::-webkit-scrollbar{display:none}
 .tabs button{display:flex;align-items:center;gap:7px;font-size:19px;font-weight:700;letter-spacing:-.02em;color:var(--faint);white-space:nowrap}
 .tabs button small{font-size:14px;font-weight:500;letter-spacing:0}
 .tabs button:hover{color:var(--sub)}
 .tabs [aria-pressed="true"]{color:var(--ink);box-shadow:inset 0 -3px 0 var(--ink)}
-.search{margin-left:auto;flex:0 1 280px;min-width:120px}
+.search{margin-left:auto;flex:0 1 230px;min-width:120px}
 .search input{width:100%;height:40px;border:1px solid var(--line);border-radius:999px;padding:0 16px;font:inherit;font-size:15px;color:var(--ink);background:var(--wash)}
 .search input::placeholder{color:var(--faint)}
 .fbtn{height:40px;padding:0 16px;border:1px solid var(--ink);border-radius:999px;font-size:15px;font-weight:600;white-space:nowrap;display:flex;align-items:center;gap:8px}
@@ -173,8 +172,15 @@ main{min-height:60vh;padding-bottom:40px}
 @keyframes ping{from{transform:scale(.5);opacity:.9}to{transform:scale(1.25);opacity:0}}
 .cap{margin-top:8px;font-size:13px;color:var(--sub)}
 
-.foot{padding:26px 40px 60px;font-size:13.5px;color:var(--sub);border-top:1px solid var(--line)}
-.foot p{margin:0 0 6px;max-width:60em}
+/* Foot: a note on accuracy, then who it is for, who made it, and whose rights apply */
+.foot{margin-top:30px;background:var(--paper);font-size:14px;color:var(--sub)}
+.foot .w{padding-top:34px;padding-bottom:56px}
+.foot .foot-note{margin:0 0 30px;padding-bottom:26px;border-bottom:1px solid var(--line);font-size:15px;color:var(--ink);max-width:none}
+.foot-cols{display:grid;grid-template-columns:1.15fr .85fr 1.3fr;gap:44px}
+.foot h2{margin:0 0 8px;font-size:14px;font-weight:700;color:var(--ink)}
+.foot p{margin:0 0 8px;max-width:34em}
+.foot b{font-weight:650;color:var(--ink)}
+.foot a{color:var(--ink);font-weight:600;text-decoration:none;border-bottom:1.5px solid var(--ink)}
 
 /* Dialogs: the full map, and the update log */
 dialog{border:0;border-radius:18px;padding:22px 24px;color:var(--ink);background:#fff;max-width:96vw;max-height:94vh;box-shadow:0 20px 60px rgba(30,42,56,.3)}
@@ -196,7 +202,8 @@ dialog::backdrop{background:rgba(30,42,56,.45)}
 .log li{position:relative;padding-left:14px;font-size:14.5px;color:var(--sub);margin-bottom:5px}
 .log li::before{content:"";position:absolute;left:2px;top:.65em;width:4px;height:4px;border-radius:50%;background:var(--faint)}
 
-@media (max-width:1240px){ .tabs{gap:22px} .tabs button small{display:none} .row-b{grid-template-columns:minmax(0,1fr) 210px 96px;gap:22px} .slot{grid-template-columns:104px minmax(0,1fr)} .detail{grid-template-columns:minmax(0,1fr) 320px} }
+@media (max-width:1320px){ .tabs button small{display:none} }
+@media (max-width:1240px){ .foot-cols{gap:30px} .tabs{gap:22px} .row-b{grid-template-columns:minmax(0,1fr) 210px 96px;gap:22px} .slot{grid-template-columns:104px minmax(0,1fr)} .detail{grid-template-columns:minmax(0,1fr) 320px} }
 
 /* Narrow or tall screens: the map sits on top with every venue in view, and the title goes under it */
 @media (max-width:899px),(max-aspect-ratio:6/5){
@@ -258,7 +265,9 @@ dialog::backdrop{background:rgba(30,42,56,.45)}
   .ps b{display:inline}
   .detail{grid-template-columns:minmax(0,1fr);gap:18px;margin:0 -6px 16px;padding:18px 16px}
   .mini{height:220px}
-  .foot{padding:22px 18px 50px}
+  .foot .w{padding-top:26px;padding-bottom:44px}
+  .foot .foot-note{margin-bottom:22px;padding-bottom:20px}
+  .foot-cols{grid-template-columns:1fr;gap:22px}
   dialog{padding:16px 14px}
   .stage{width:min(92vw,calc(70vh*var(--r)))}
   .lab{font-size:11.5px;padding:2px 7px}

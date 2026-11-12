@@ -322,8 +322,7 @@
       var x=(lon-LON_W)*KX*SC, y=OY+(LAT_N-lat)*KY*SC*TILT;
       return 'left:'+((cx+(x-cx)/K-VIEW[0])/VIEW[2]*100).toFixed(2)+'%;top:'+((cy+(y-cy)/K-VIEW[1])/VIEW[3]*100).toFixed(2)+'%';
     }
-    $('cityLabs').innerHTML=CITY_LABELS.map(function(l){ return '<span class="city-lab" style="'+at(l[1],l[2])+'">'+esc(l[0])+'</span>'; }).join('')
-      +'<span class="city-lab here" style="left:50%;top:50%">CES 2027</span>';
+    $('cityLabs').innerHTML=CITY_LABELS.map(function(l){ return '<span class="city-lab" style="'+at(l[1],l[2])+'">'+esc(l[0])+'</span>'; }).join('');
     var zoom=$('zoom'), city=$('city'), stacked=g.s===1&&g.O[0]!==window.innerWidth, anims=[], over=false;
     function T(tx,ty,k){ return 'translate('+tx.toFixed(2)+'px,'+ty.toFixed(2)+'px) scale('+k.toFixed(5)+')'; }
     function ease(u){ return u<.5?4*u*u*u:1-Math.pow(-2*u+2,3)/2; }
@@ -342,7 +341,8 @@
         play(zoom,frames,IN,HOLD);
         fade($('cityLabs'),1,0,IN*.25,HOLD+IN*.2);
         fade(city,1,0,IN*.3,HOLD+IN*.7);                                     // the valley stays until the venue map all but fills the screen
-        play($('mapIn'),[{'--edge':'24%'},{'--edge':'0%'}],IN*.45,HOLD+IN*.5,'ease');   // the venue map's edges firm up as it grows
+        fade($('mapIn'),0,1,IN*.3,HOLD+IN*.3);                               // the venue map comes in once it is large enough to read
+        play($('mapIn'),[{'--edge':'24%'},{'--edge':'0%'}],IN*.45,HOLD+IN*.5,'ease');   // and its edges firm up as it grows
         if(!stacked) fade($('veil'),0,1,IN*.4,HOLD+IN*.6);
         t=HOLD+IN+REST;
       } else t=250;

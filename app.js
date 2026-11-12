@@ -82,7 +82,12 @@
   }
 
   /* State. The hash keeps the same keys as before (c, d, t, p, b, s, q) so old shared links still open */
-  function dayKey(it){ return DAYS.indexOf(it['날짜'])>=0?it['날짜']:'prep'; }
+  // Each item belongs to one tab: a CES day, 'rules' (deadlines and entry rules, to settle before leaving),
+  // or 'places' (stages, events and booths with no fixed time, to drop by on site)
+  function dayKey(it){
+    if(DAYS.indexOf(it['날짜'])>=0) return it['날짜'];
+    return it['날짜']||it['분류']==='기한'||it['분류']==='입장 규칙'?'rules':'places';
+  }
   function tracksOf(it){ return (it['우리트랙']||'').split(';').map(function(s){return s.trim();}).filter(Boolean); }
   var GROUPS=[
     {key:'t',title:'Track',get:tracksOf,order:TRACKS},
@@ -91,7 +96,12 @@
     {key:'b',title:'Building',get:function(it){return it['건물']?[it['건물']]:[];},order:null,panel:true},
     {key:'s',title:'Status',get:function(it){return [it['상태']];},order:STATES,panel:true}
   ];
-  var TABS=DAYS.concat(['prep','all']);
+  var TABS=DAYS.concat(['rules','places','all']);
+  var TAB_NAME={rules:'Rules & deadlines',places:'Stages & booths',all:'All'};
+  var TAB_NOTE={
+    rules:'What to settle before leaving, and how entry works once you are there.',
+    places:'Stages, official events and booths with no fixed time yet. These are for visiting on your own; the delegation does not ask for group visits.'
+  };
   var ITEMS=[],BY_ID={},UPD=[],LATEST='',NEWFROM='',DEFAULT_DAY=DAYS[0];
   var state={q:'',d:DAYS[0]}; GROUPS.forEach(function(g){ state[g.key]=[]; });
 
@@ -100,7 +110,7 @@
     GROUPS.forEach(function(g){ var v=h.get(g.key); state[g.key]=v?v.split(','):[]; });
     state.q=h.get('q')||'';
     var d=(h.get('d')||'').split(',')[0];
-    if(d==='pre'||d==='none') d='prep';
+    if(d==='pre'||d==='prep') d='rules'; else if(d==='none') d='places';   // tab names used by earlier versions
     state.d=TABS.indexOf(d)>=0?d:(state.q?'all':DEFAULT_DAY);
   }
   function writeHash(){
@@ -128,7 +138,7 @@
   function toggle(key,v){ var a=state[key],i=a.indexOf(v); if(i>=0) a.splice(i,1); else a.push(v); writeHash(); render(); }
 
   /* Bar */
-  function tabLabel(k){ return k==='prep'?'Before you go':k==='all'?'All':wmd(k); }
+  function tabLabel(k){ return TAB_NAME[k]||wmd(k); }
   function renderTabs(){
     $('tabs').innerHTML=TABS.map(function(k){
       var n=ITEMS.filter(function(it){ return (k==='all'||dayKey(it)===k)&&matches(it,null,true); }).length;
@@ -172,7 +182,7 @@
     }).join('');
     if(!introDone){   // the first labels wait for the opening move to finish
       introDone=true; box.className='intro';
-      var wait=Math.max(0,1900-performance.now());
+      var wait=Math.max(0,2300-performance.now());
       [].forEach.call(box.children,function(el,i){ el.style.animationDelay=(wait+i*50)+'ms'; });
     } else box.className='';
     $('venues').innerHTML=names.map(function(b){
@@ -231,11 +241,12 @@
   function renderList(){
     var shown=ITEMS.filter(function(it){ return matches(it,null); }), html='';
     if(state.d==='all'){
-      DAYS.concat(['prep']).forEach(function(k){
+      DAYS.concat(['rules','places']).forEach(function(k){
         var part=shown.filter(function(it){ return dayKey(it)===k; });
-        if(part.length) html+='<h2 class="dayhead">'+esc(tabLabel(k))+'<small>'+part.length+'</small></h2>'+(k==='prep'?prepHtml(part):dayHtml(part));
+        if(part.length) html+='<h2 class="dayhead">'+esc(tabLabel(k))+'<small>'+part.length+'</small></h2>'+(DAYS.indexOf(k)<0?prepHtml(part):dayHtml(part));
       });
-    } else html=state.d==='prep'?prepHtml(shown):dayHtml(shown);
+    } else if(DAYS.indexOf(state.d)>=0) html=dayHtml(shown);
+    else html=shown.length?'<p class="tabnote">'+esc(TAB_NOTE[state.d])+'</p>'+prepHtml(shown):'';
     $('list').innerHTML=html||'<p class="empty">Nothing matches these filters'+(state.d==='all'?'.':' on this tab.')+'<button type="button" class="text-btn" data-reset>Clear all filters</button></p>';
     watch();
     var base=ITEMS.filter(inTab).length;
@@ -271,14 +282,25 @@
 
   /* One move between the first screen and the schedule. Touch, the scrollbar and Page keys are handled by
      CSS scroll snapping; a mouse wheel or an arrow key moves too little for that, so those are sent the whole way here */
-  var moving=0;
-  function go(y){ moving=Date.now(); window.scrollTo({top:y,behavior:calm?'auto':'smooth'}); }
+  var moving=0, raf=0;
+  // A slow, eased move. Snapping is switched off while it runs, or the browser would pull each frame back
+  function go(y){
+    var root=document.documentElement, from=window.scrollY, dist=y-from, dur=calm?0:Math.min(1500,Math.max(1100,Math.abs(dist)*1.3)), t0=performance.now();
+    cancelAnimationFrame(raf);
+    if(!dur||Math.abs(dist)<2){ window.scrollTo(0,y); return; }
+    moving=Date.now()+dur; root.style.scrollSnapType='none';
+    (function frame(now){
+      var p=Math.min(1,(now-t0)/dur), e=p<.5?4*p*p*p:1-Math.pow(-2*p+2,3)/2;
+      window.scrollTo(0,from+dist*e);
+      if(p<1) raf=requestAnimationFrame(frame); else root.style.scrollSnapType='';
+    })(t0);
+  }
   function snap(){
     var top=document.querySelector('.top'), last=0;
     function fits(){ return top.offsetHeight<=window.innerHeight+2; }   // on small screens the first screen can be taller; let it scroll
     function step(dir,fresh){
       var y=window.scrollY, h=top.offsetHeight;
-      if(Date.now()-moving<800) return true;                // already on the way
+      if(Date.now()<moving+250) return true;                // already on the way
       if(dir>0&&y<h-1){ go(h); return true; }
       if(dir<0&&y>0&&y<=h+1){ if(fresh) go(0); return true; }   // going back up starts with a new gesture, not leftover momentum
       return false;
@@ -298,7 +320,7 @@
   (function(){
     var W=window.innerWidth, H=window.innerHeight, pad=Math.max(40,(W-1360)/2), res=pad+Math.min(480,.34*W)+24;
     var z=Math.max(H/1660,Math.min(H/1400,(W-res)/1530));
-    document.documentElement.style.setProperty('--s',Math.max(1,Math.min(W/(2080*z),H/(1345*z))).toFixed(4));
+    document.documentElement.style.setProperty('--s',Math.max(1,Math.min(1.12,W/(2080*z),H/(1345*z))).toFixed(4));
   })();
 
   function render(){ renderTabs(); renderTracks(); renderPanel(); renderPins(); renderList(); $('q').value=state.q; }

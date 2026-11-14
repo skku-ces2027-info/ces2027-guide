@@ -5,7 +5,9 @@
   --lvcc:#2F6FA8; --ven:#1F8469; --cspace:#C4553A; --font:#6F54B0; --etc:#6B7280;
   --f:"Pretendard Variable",Pretendard,-apple-system,"Apple SD Gothic Neo","Helvetica Neue",Arial,sans-serif;
   --sign:"Big Shoulders Display","Pretendard Variable",Pretendard,sans-serif;   /* a signboard face, for "CES 2027" and the day counts only */
-  --pad:max(40px,calc((100vw - 1360px)/2));
+  /* Side margin of the first screen. It follows the page column up to a point, then stops at 72px:
+     the map runs edge to edge, so on a wide window the title stays by the left edge instead of drifting toward the map */
+  --pad:max(40px,min(72px,calc((100vw - 1360px)/2)));
   --res:calc(var(--pad) + min(480px,34vw) + 24px);            /* width kept clear for the title */
   /* Map scale, in px per map unit. Large enough to cover the screen from top to bottom (1660 units of height),
      small enough that every venue stays whole (1400 units) and sits to the right of the title (1530 units) */

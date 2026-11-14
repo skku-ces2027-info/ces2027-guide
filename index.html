@@ -19,7 +19,7 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@800&amp;text=CES%200123456789&amp;display=swap">
-<link rel="stylesheet" href="style.css?v=20261114c">
+<link rel="stylesheet" href="style.css?v=20261114d">
 <script>
 /* Opening move, set up before the first paint so nothing jumps. The page starts on the whole Las Vegas valley
    (maps/city-*.webp), closes in until the venue map fills the screen, then draws back to make room for the title.
@@ -33,7 +33,7 @@
     var hb=W/1.13333,ih=1.29333*hb,iw=ih*2120/1940;
     g={O:[W/2,hb/2],c:[W-iw/2,ih/2-.04*hb],s:1,a:Math.max(W/iw,hb/ih)/K}; g.A=g.O;
   } else {                                                               // same numbers as --z in style.css
-    var pad=Math.max(40,(W-1360)/2),res=pad+Math.min(480,.34*W)+24,z=Math.max(H/1660,Math.min(H/1400,(W-res)/1530));
+    var pad=Math.max(40,Math.min(72,(W-1360)/2)),res=pad+Math.min(480,.34*W)+24,z=Math.max(H/1660,Math.min(H/1400,(W-res)/1530));
     g={O:[W,H/2],c:[W-1020*z,H/2+140*z],s:Math.max(1,Math.min(1.12,W/(2080*z),H/(1345*z))),a:Math.max(W/(2120*z),H/(1940*z))/K}; g.A=[W/2,H/2];
   }
   // O: the point the map scales about. c: the middle of the venue map. A: where that middle starts on screen
@@ -136,6 +136,6 @@
   <div class="dlg-head"><strong id="logTitle">Updates</strong><button type="button" class="text-btn" data-close>Close</button></div>
   <div class="log" id="log" lang="ko"></div>
 </dialog>
-<script src="app.js?v=20261114c"></script>
+<script src="app.js?v=20261114d"></script>
 </body>
 </html>

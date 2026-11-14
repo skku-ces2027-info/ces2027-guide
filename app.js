@@ -431,7 +431,8 @@
     if(today<DAYS[0]) list.push({d:DAYS[0],name:'CES opens'});
     $('dues').innerHTML=list.map(function(x){
       var dd=Math.round((day(x.d)-t0)/86400000);
-      return '<li><b>'+(dd===0?'Today':dd+' day'+(dd>1?'s':''))+'</b><span'+(x.ko?' lang="ko"':'')+'>'+esc(x.name)+'</span>, '+esc(md(x.d))+'</li>';
+      return '<li><span class="n">'+(dd===0?'<b class="word">Today</b>':'<b>'+dd+'</b>'+(dd>1?'days':'day'))+'</span>'
+        +'<span class="what"'+(x.ko?' lang="ko"':'')+'>'+esc(x.name)+'</span><span class="when">'+esc(md(x.d))+'</span></li>';
     }).join('');
     $('stamp').textContent=LATEST?'Updated '+md(LATEST):'';
     var by={},keys=[];

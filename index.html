@@ -17,7 +17,9 @@
 <link rel="preload" as="image" type="image/webp" imagesrcset="maps/city-1200.webp 1200w, maps/city-2000.webp 2000w" imagesizes="(max-width:899px) 100vw, 70vw">
 <link rel="preload" as="image" type="image/webp" imagesrcset="maps/hero-1000.webp 1000w, maps/hero-1600.webp 1600w, maps/hero-2600.webp 2600w" imagesizes="(max-width:899px) 125vw, (max-aspect-ratio:6/5) 125vw, 90vw">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
-<link rel="stylesheet" href="style.css?v=20261113i">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@800&amp;text=CES%200123456789&amp;display=swap">
+<link rel="stylesheet" href="style.css?v=20261114c">
 <script>
 /* Opening move, set up before the first paint so nothing jumps. The page starts on the whole Las Vegas valley
    (maps/city-*.webp), closes in until the venue map fills the screen, then draws back to make room for the title.
@@ -59,7 +61,7 @@
   <div class="veil" id="veil"></div>
   <section class="title">
     <div id="titleIn">
-      <h1><span lang="ko">성균관대학교<br>미래기술 탐방연수</span><br>CES 2027</h1>
+      <h1><span class="t-main">CES<br> 2027</span><span class="t-sub" lang="ko">성균관대학교 미래기술 탐방연수</span></h1>
       <p class="lead">A guide for our delegation in Las Vegas: sessions, keynotes and entry rules, <span id="total">over 200</span> items in all. Pick a day, filter by track, or choose a building on the map to see what runs there.</p>
       <ul class="dues" id="dues"></ul>
     </div>
@@ -115,9 +117,9 @@
       </section>
       <section>
         <h2>Rights and credits <span lang="ko">저작권과 출처</span></h2>
-        <p>© 2026 Jihoon Kim. All rights reserved for the design, the code and the Korean summaries. Session titles are quoted from the CES schedule and belong to their owners. Map data © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap</a> contributors, Open Database License. Typeface: Pretendard, SIL Open Font License.</p>
+        <p>© 2026 Jihoon Kim. All rights reserved for the design, the code and the Korean summaries. Session titles are quoted from the CES schedule and belong to their owners. Map data © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap</a> contributors, Open Database License. Typefaces: Pretendard and Big Shoulders Display, SIL Open Font License.</p>
         <p>CES is a registered trademark of the Consumer Technology Association. This guide is independent. It is not affiliated with or endorsed by CTA, and it is not an official page of Sungkyunkwan University.</p>
-        <p lang="ko">© 2026 김지훈. 디자인, 코드, 한국어 요약의 모든 권리는 만든 사람에게 있습니다. 세션 원제목은 CES 일정표에서 인용했으며 권리는 각 권리자에게 있습니다. 지도 데이터 © OpenStreetMap 기여자(Open Database License). 글꼴은 Pretendard(SIL Open Font License)입니다.</p>
+        <p lang="ko">© 2026 김지훈. 디자인, 코드, 한국어 요약의 모든 권리는 만든 사람에게 있습니다. 세션 원제목은 CES 일정표에서 인용했으며 권리는 각 권리자에게 있습니다. 지도 데이터 © OpenStreetMap 기여자(Open Database License). 글꼴은 Pretendard와 Big Shoulders Display(SIL Open Font License)입니다.</p>
         <p lang="ko">CES는 미국소비자기술협회(CTA)의 등록상표입니다. 이 안내는 CTA와 관계가 없는 독립 자료이며, 성균관대학교의 공식 페이지가 아닙니다.</p>
       </section>
     </div>
@@ -134,6 +136,6 @@
   <div class="dlg-head"><strong id="logTitle">Updates</strong><button type="button" class="text-btn" data-close>Close</button></div>
   <div class="log" id="log" lang="ko"></div>
 </dialog>
-<script src="app.js?v=20261113i"></script>
+<script src="app.js?v=20261114c"></script>
 </body>
 </html>
